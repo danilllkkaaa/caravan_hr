@@ -1,0 +1,35 @@
+# dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# production build
+build/
+
+# env files — keep only the example
+.env
+.env.local
+.env.*.local
+
+# Prisma generated client (regenerated on build)
+prisma/generated/
+
+# uploaded files (user data — never commit)
+storage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# temp / tool files
+*.tmp
+.claude/

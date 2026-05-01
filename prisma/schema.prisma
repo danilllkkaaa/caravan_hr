@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RequestStatus {
+  approved
+  pending
+  rejected
+  draft
+}
+
+enum TimeStatus {
+  normal
+  overtime
+  short
+  weekend
+  holiday
+  absent
+}
+
+enum NotificationType {
+  approved
+  rejected
+  info
+  reminder
+}
+
+enum SickLeaveStatus {
+  opened
+  closed
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  passwordHash    String
+  name            String
+  firstName       String
+  position        String
+  department      String
+  phone           String
+  employeeId      String         @unique
+  hireDate        DateTime
+  vacationTotal   Int            @default(28)
+  vacationUsed    Int            @default(0)
+  role            String         @default("user")
+  managerId       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  manager         User?          @relation("ManagementTree", fields: [managerId], references: [id], onDelete: SetNull)
+  subordinates    User[]         @relation("ManagementTree")
+  sessions        Session[]
+  vacations       Vacation[]
+  sickLeaves      SickLeave[]
+  timeRecords     TimeRecord[]
+  notifications   Notification[]
+
+  @@index([department])
+  @@index([role])
+  @@index([managerId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Vacation {
+  id        Int           @id @default(autoincrement())
+  userId    String
+  startDate DateTime
+  endDate   DateTime
+  days      Int
+  type      String
+  status    RequestStatus @default(pending)
+  comment   String        @default("")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SickLeave {
+  id            Int           @id @default(autoincrement())
+  userId        String
+  startDate     DateTime
+  endDate       DateTime?
+  days          Int           @default(0)
+  status        SickLeaveStatus @default(opened)
+  hasFile       Boolean       @default(false)
+  fileName      String?
+  filePath      String?
+  fileSize      Int?
+  fileMimeType  String?
+  comment       String        @default("")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model TimeRecord {
+  id        Int        @id @default(autoincrement())
+  userId    String
+  date      DateTime
+  checkIn   String
+  checkOut  String
+  total     String
+  status    TimeStatus
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  userId      String
+  type        NotificationType
+  title       String
+  description String
+  date        DateTime
+  time        String
+  read        Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
