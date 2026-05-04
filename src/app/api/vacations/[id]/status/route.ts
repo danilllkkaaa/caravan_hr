@@ -4,7 +4,7 @@ import { prisma } from '@/lib/server/prisma';
 
 export const runtime = 'nodejs';
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user, response } = await requireCurrentUser();
   if (response) return response;
 
@@ -12,7 +12,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
   }
 
-  const id = Number(params.id);
+  const { id: idStr } = await params;
+  const id = Number(idStr);
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: 'Некорректный id' }, { status: 400 });
   }

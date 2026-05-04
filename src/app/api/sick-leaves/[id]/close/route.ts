@@ -16,11 +16,12 @@ function safeFileName(name: string) {
   return name.replace(/[^\wа-яА-ЯёЁ.\-]+/g, '_').slice(0, 120);
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user, response } = await requireCurrentUser();
   if (response) return response;
 
-  const id = Number(params.id);
+  const { id: idStr } = await params;
+  const id = Number(idStr);
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: 'Некорректный id больничного' }, { status: 400 });
   }

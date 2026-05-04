@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export const runtime = 'nodejs';
 
 export async function POST() {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (token) {
     await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
   }
