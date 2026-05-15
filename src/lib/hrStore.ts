@@ -56,17 +56,23 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
+const emptyUser: User = {
+  name: '', firstName: '', position: '', department: '',
+  email: '', phone: '', employeeId: '', hireDate: '',
+  role: 'employee', managerId: null, managerName: null,
+};
+
 export const useHRStore = create<HRState>((set, get) => ({
   isLoggedIn: false,
-  loading: false,
-  user: initialMockData.user,
-  vacationBalance: initialMockData.vacationBalance,
-  vacations: initialMockData.vacations,
+  loading: true,
+  user: emptyUser,
+  vacationBalance: { total: 0, used: 0, remaining: 0 },
+  vacations: [],
   hasMoreVacations: false,
-  sickLeaves: initialMockData.sickLeaves,
+  sickLeaves: [],
   hasMoreSickLeaves: false,
-  timeRecords: initialMockData.timeRecords,
-  notifications: initialMockData.notifications,
+  timeRecords: [],
+  notifications: [],
   hasMoreNotifications: false,
   approvalVacations: [],
 

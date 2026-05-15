@@ -19,18 +19,25 @@ export function AuthGate({ children }: { children: ReactNode }) {
       }
       setReady(true);
     });
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [hydrate, pathname, router]);
 
-  if (!ready) {
-    return (
-      <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', color: '#78909C', fontSize: 14 }}>
-        Загрузка...
-      </div>
-    );
-  }
+  if (!ready) return (
+    <div style={{
+      minHeight: '100dvh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'var(--bg)',
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: '50%',
+        border: '3px solid var(--border)',
+        borderTopColor: 'var(--blue)',
+        animation: 'spin 0.7s linear infinite',
+      }} />
+    </div>
+  );
 
-  return children;
+  return <>{children}</>;
 }
