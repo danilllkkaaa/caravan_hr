@@ -18,21 +18,30 @@ export function sessionExpiresAt(): Date {
   return new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000);
 }
 
-export function setSessionCookie(response: NextResponse, token: string, expires: Date) {
+export function shouldUseSecureCookie(request: Request): boolean {
+  if (process.env.SESSION_COOKIE_SECURE === 'true') return true;
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  if (forwardedProto === 'https') return true;
+  const cfVisitor = request.headers.get('cf-visitor');
+  if (cfVisitor?.includes('"scheme":"https"')) return true;
+  return new URL(request.url).protocol === 'https:';
+}
+
+export function setSessionCookie(response: NextResponse, token: string, expires: Date, secure = false) {
   response.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.SESSION_COOKIE_SECURE === 'true',
+    secure,
     path: '/',
     expires,
   });
 }
 
-export function clearSessionCookie(response: NextResponse) {
+export function clearSessionCookie(response: NextResponse, secure = false) {
   response.cookies.set(SESSION_COOKIE, '', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.SESSION_COOKIE_SECURE === 'true',
+    secure,
     path: '/',
     expires: new Date(0),
   });

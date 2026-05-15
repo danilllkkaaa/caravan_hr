@@ -52,9 +52,9 @@ export function BottomNav() {
               minHeight: 52,
             }}
           >
-            <Icon size={21} strokeWidth={active ? 2.1 : 1.7} />
+            <Icon size={22} strokeWidth={active ? 2.1 : 1.7} />
             <span style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: active ? 600 : 400,
               lineHeight: 1,
               letterSpacing: '0.01em',

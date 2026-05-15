@@ -15,12 +15,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname === '/login' && hasSession) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/home';
-    return NextResponse.redirect(url);
-  }
-
   return NextResponse.next();
 }
 

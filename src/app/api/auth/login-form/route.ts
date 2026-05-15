@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { prisma } from '@/lib/server/prisma';
 import {
   createSessionToken,
   hashToken,
@@ -8,11 +7,29 @@ import {
   setSessionCookie,
   shouldUseSecureCookie,
 } from '@/lib/server/auth';
-import { serializeUser } from '@/lib/server/serializers';
 import { checkRateLimit, clearRateLimitOnSuccess, getClientIp } from '@/lib/server/rateLimit';
 import { requireSameOrigin } from '@/lib/server/requestSecurity';
+import { prisma } from '@/lib/server/prisma';
 
 export const runtime = 'nodejs';
+
+function publicOrigin(request: Request): string {
+  const origin = request.headers.get('origin');
+  if (origin) return origin;
+
+  const referer = request.headers.get('referer');
+  if (referer) return new URL(referer).origin;
+
+  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim();
+  const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim();
+  if (forwardedProto && forwardedHost) return `${forwardedProto}://${forwardedHost}`;
+
+  return new URL(request.url).origin;
+}
+
+function loginRedirect(request: Request, path: string) {
+  return NextResponse.redirect(new URL(path, publicOrigin(request)), 303);
+}
 
 export async function POST(request: Request) {
   const originError = requireSameOrigin(request);
@@ -21,23 +38,20 @@ export async function POST(request: Request) {
   const ip = getClientIp(request);
   const limit = checkRateLimit(ip);
   if (!limit.allowed) {
-    return NextResponse.json(
-      { error: `Слишком много попыток. Повторите через ${limit.retryAfter} сек.` },
-      { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } },
-    );
+    return loginRedirect(request, '/login?error=rate-limit');
   }
 
-  const body = await request.json().catch(() => null);
-  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
-  const password = typeof body?.password === 'string' ? body.password : '';
+  const formData = await request.formData();
+  const email = String(formData.get('email') ?? '').trim().toLowerCase();
+  const password = String(formData.get('password') ?? '');
 
   if (!email || !password) {
-    return NextResponse.json({ error: 'Введите email и пароль' }, { status: 400 });
+    return loginRedirect(request, '/login?error=missing');
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    return NextResponse.json({ error: 'Неверный email или пароль' }, { status: 401 });
+    return loginRedirect(request, '/login?error=invalid');
   }
 
   clearRateLimitOnSuccess(ip);
@@ -52,7 +66,7 @@ export async function POST(request: Request) {
     },
   });
 
-  const response = NextResponse.json({ user: serializeUser(user) });
+  const response = loginRedirect(request, '/home');
   setSessionCookie(response, token, expiresAt, shouldUseSecureCookie(request));
   return response;
 }

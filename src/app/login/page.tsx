@@ -13,8 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleLogin() {
     if (!email.trim()) { setError('Введите email'); return; }
     if (!password.trim()) { setError('Введите пароль'); return; }
     setError('');
@@ -89,22 +88,34 @@ export default function LoginPage() {
           Используйте корпоративный аккаунт
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form
+          method="post"
+          action="/api/auth/login-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleLogin();
+          }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+        >
           <AppInput
             label="Email"
             type="email"
+            name="email"
             placeholder="имя@caravan.local"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
           />
           <AppInput
             label="Пароль"
             type="password"
+            name="password"
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
+            required
           />
 
           {error && (

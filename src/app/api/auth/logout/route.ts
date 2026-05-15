@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { clearSessionCookie, hashToken, SESSION_COOKIE } from '@/lib/server/auth';
+import { clearSessionCookie, hashToken, SESSION_COOKIE, shouldUseSecureCookie } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/prisma';
 import { cookies } from 'next/headers';
 import { requireSameOrigin } from '@/lib/server/requestSecurity';
@@ -16,6 +16,6 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true });
-  clearSessionCookie(response);
+  clearSessionCookie(response, shouldUseSecureCookie(request));
   return response;
 }

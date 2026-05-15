@@ -29,7 +29,7 @@ export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(
   ({ label, error, style, ...props }, ref) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       {label && (
-        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{label}</label>
+        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{label}</label>
       )}
       <input
         ref={ref}
@@ -52,7 +52,7 @@ export const AppTextarea = forwardRef<HTMLTextAreaElement, AppTextareaProps>(
   ({ label, error, style, ...props }, ref) => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       {label && (
-        <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-2)' }}>{label}</label>
+        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{label}</label>
       )}
       <textarea
         ref={ref}

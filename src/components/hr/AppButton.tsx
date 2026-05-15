@@ -57,7 +57,7 @@ export function AppButton({
         fontWeight: 600,
         fontFamily: 'inherit',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
+        opacity: disabled ? 0.7 : 1,
         width: fullWidth ? '100%' : undefined,
         transition: 'opacity 0.12s',
         WebkitTapHighlightColor: 'transparent',

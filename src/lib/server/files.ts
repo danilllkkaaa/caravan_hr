@@ -23,8 +23,8 @@ export function validateSickLeaveFile(file: File | null, buffer?: Buffer): strin
 }
 
 export function getUploadRoot(): string {
-  const defaultRoot = path.join(/* turbopackIgnore: true */ process.cwd(), 'storage', 'uploads');
-  return path.resolve(/* turbopackIgnore: true */ process.env.UPLOAD_DIR ?? defaultRoot);
+  if (process.env.UPLOAD_DIR) return path.resolve(process.env.UPLOAD_DIR);
+  return '/app/storage/uploads';
 }
 
 export async function saveUploadedFile(file: File, segments: string[], buffer?: Buffer): Promise<StoredUpload> {
@@ -47,7 +47,7 @@ export async function saveUploadedFile(file: File, segments: string[], buffer?: 
 
 export function resolveUploadedFile(relativePath: string): string | null {
   const uploadRoot = getUploadRoot();
-  const resolved = path.resolve(uploadRoot, /* turbopackIgnore: true */ relativePath);
+  const resolved = path.resolve(uploadRoot, relativePath);
   const isInsideRoot = resolved === uploadRoot || resolved.startsWith(uploadRoot + path.sep);
   return isInsideRoot ? resolved : null;
 }
