@@ -109,7 +109,7 @@ export default function EmployeesPage() {
     <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
       <div style={{ background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 24px', borderRadius: '0 0 28px 28px' }}>
         <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Сотрудники</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+        <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
           {data?.department ?? 'Оргструктура'}
         </div>
       </div>

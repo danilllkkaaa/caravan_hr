@@ -37,8 +37,8 @@ export default function NotificationsPage() {
       <div style={{ background: 'var(--blue)', paddingTop: 'env(safe-area-inset-top)' }}>
         <div style={{ padding: '14px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ color: '#fff', fontSize: 16, fontWeight: 600 }}>Уведомления</div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 1 }}>
+            <div style={{ color: '#fff', fontSize: 17, fontWeight: 600 }}>Уведомления</div>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
               {unreadCount > 0 ? `${unreadCount} непрочитанных` : 'Все прочитаны'}
             </div>
           </div>
@@ -57,7 +57,7 @@ export default function NotificationsPage() {
       <div style={{ padding: '14px 16px 0' }}>
         {sortedDates.map((date) => (
           <div key={date} style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
               {formatGroupDate(date)}
             </div>
             <AppCard padding="0">
@@ -81,12 +81,12 @@ export default function NotificationsPage() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
-                        <div style={{ fontSize: 14, fontWeight: notif.read ? 500 : 600, color: 'var(--text)' }}>
+                        <div style={{ fontSize: 15, fontWeight: notif.read ? 500 : 600, color: 'var(--text)' }}>
                           {notif.title}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-3)', flexShrink: 0 }}>{notif.time}</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-3)', flexShrink: 0 }}>{notif.time}</div>
                       </div>
-                      <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.5 }}>
                         {notif.description}
                       </div>
                     </div>

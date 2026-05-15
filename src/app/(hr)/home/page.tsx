@@ -49,13 +49,13 @@ export default function HomePage() {
           padding: '14px 20px 16px',
         }}>
           <div>
-            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500 }}>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500 }}>
               {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
             </div>
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginTop: 1, letterSpacing: '-0.02em' }}>
+            <div style={{ color: '#fff', fontSize: 20, fontWeight: 700, marginTop: 2, letterSpacing: '-0.02em' }}>
               {user.firstName}
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 1 }}>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
               {user.position}
             </div>
           </div>
@@ -87,10 +87,10 @@ export default function HomePage() {
         <AppCard style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500 }}>Отпуск</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginTop: 1 }}>
+              <div style={{ fontSize: 14, color: 'var(--text-3)', fontWeight: 500 }}>Отпуск</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginTop: 2 }}>
                 {vacationBalance.remaining}
-                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-2)', marginLeft: 4 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: 'var(--text-2)', marginLeft: 5 }}>
                   из {vacationBalance.total} дн.
                 </span>
               </div>
@@ -98,8 +98,8 @@ export default function HomePage() {
             <div style={{
               background: 'var(--blue-surface)',
               color: 'var(--blue)',
-              fontSize: 12, fontWeight: 600,
-              padding: '4px 10px', borderRadius: 6,
+              fontSize: 13, fontWeight: 600,
+              padding: '5px 10px', borderRadius: 6,
             }}>
               {vacationBalance.used} использовано
             </div>
@@ -117,10 +117,10 @@ export default function HomePage() {
               transition: 'width 0.4s ease',
             }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>0</span>
-            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{usedPct}% использовано</span>
-            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{vacationBalance.total}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 7 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>0</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{usedPct}% использовано</span>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{vacationBalance.total}</span>
           </div>
         </AppCard>
 
@@ -129,21 +129,21 @@ export default function HomePage() {
           <AppCard style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500, marginBottom: 4 }}>
+                <div style={{ fontSize: 14, color: 'var(--text-3)', fontWeight: 500, marginBottom: 4 }}>
                   Сегодня
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
                   {todayRecord.checkIn} → {todayRecord.checkOut}
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
+                <div style={{ fontSize: 13, color: 'var(--text-2)', marginTop: 3 }}>
                   {todayRecord.total} рабочего времени
                 </div>
               </div>
               <div style={{
-                fontSize: 12, fontWeight: 500,
+                fontSize: 13, fontWeight: 500,
                 color: STATUS_COLOR[todayRecord.status] ?? 'var(--text-2)',
                 background: 'var(--border-light)',
-                padding: '5px 10px', borderRadius: 6,
+                padding: '5px 11px', borderRadius: 6,
               }}>
                 {STATUS_LABEL[todayRecord.status] ?? todayRecord.status}
               </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
         )}
 
         {/* Actions */}
-        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
           Действия
         </div>
         <AppCard padding="0" style={{ marginBottom: 12 }}>
@@ -177,11 +177,11 @@ export default function HomePage() {
                 {action.icon}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>
                   {action.label}
                 </div>
                 {action.hint && (
-                  <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+                  <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
                     {action.hint}
                   </div>
                 )}
@@ -207,10 +207,10 @@ export default function HomePage() {
               <BellIcon size={17} color="var(--blue)" />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>
                 {unread} непрочитанных уведомления
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+              <div style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 2 }}>
                 Нажмите, чтобы просмотреть
               </div>
             </div>

@@ -59,10 +59,10 @@ export default function ProfilePage() {
             {user.firstName[0]}
           </div>
           <div>
-            <div style={{ color: '#fff', fontSize: 16, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            <div style={{ color: '#fff', fontSize: 17, fontWeight: 700, letterSpacing: '-0.02em' }}>
               {user.name}
             </div>
-            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, marginTop: 2 }}>
+            <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 3 }}>
               {user.position} · {user.department}
             </div>
           </div>
@@ -76,8 +76,8 @@ export default function ProfilePage() {
             { value: vacationBalance.total,     label: 'Всего в год' },
           ].map((item, i) => (
             <div key={i} style={{ flex: 1, padding: '10px 8px', textAlign: 'center', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.1)' : 'none' }}>
-              <div style={{ color: '#fff', fontSize: 18, fontWeight: 700 }}>{item.value}</div>
-              <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 10, marginTop: 1 }}>{item.label}</div>
+              <div style={{ color: '#fff', fontSize: 20, fontWeight: 700 }}>{item.value}</div>
+              <div style={{ color: 'rgba(255,255,255,0.82)', fontSize: 12, marginTop: 2 }}>{item.label}</div>
             </div>
           ))}
         </div>
@@ -86,7 +86,7 @@ export default function ProfilePage() {
       <div style={{ padding: '16px 16px 0' }}>
         {sections.map((section) => (
           <div key={section.title} style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
               {section.title}
             </div>
             <AppCard padding="0">
@@ -100,8 +100,8 @@ export default function ProfilePage() {
                     <Icon size={16} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--text)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {value}
                     </div>
                   </div>

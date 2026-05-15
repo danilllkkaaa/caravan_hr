@@ -45,7 +45,7 @@ export default function ApprovalsPage() {
         borderRadius: '0 0 28px 28px',
       }}>
         <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Согласования</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+        <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
           {approvalVacations.length > 0
             ? `${approvalVacations.length} заявок ожидают решения`
             : 'Новых заявок нет'}

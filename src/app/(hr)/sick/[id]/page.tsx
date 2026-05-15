@@ -60,7 +60,7 @@ export default function SickDetailPage() {
           ← Назад
         </button>
         <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Больничный</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+        <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2 }}>
           Статус: {currentSickLeave.status === 'opened' ? 'открыт' : 'закрыт'}
         </div>
       </div>
