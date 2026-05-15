@@ -2,89 +2,65 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useHRStore } from '@/lib/hrStore';
+import { HomeIcon, CalendarIcon, ClockIcon, UsersIcon, UserIcon } from './Icons';
+
+const tabs = [
+  { href: '/home',      Icon: HomeIcon,     label: 'Главная'     },
+  { href: '/vacations', Icon: CalendarIcon,  label: 'Отпуска'     },
+  { href: '/time',      Icon: ClockIcon,     label: 'Время'       },
+  { href: '/employees', Icon: UsersIcon,     label: 'Сотрудники'  },
+  { href: '/profile',   Icon: UserIcon,      label: 'Профиль'     },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user, approvalVacations } = useHRStore();
+  const { user } = useHRStore();
   const isManagerOrAdmin = user.role === 'manager' || user.role === 'admin';
-
-  const tabs = [
-    { href: '/home', icon: '🏠', label: 'Главная' },
-    { href: '/vacations', icon: '✈️', label: 'Отпуска' },
-    { href: '/time', icon: '⏱️', label: 'Время' },
-    { href: '/employees', icon: '👥', label: 'Сотрудники' },
-    { href: '/profile', icon: '👤', label: 'Профиль' },
-  ] as Array<{ href: string; icon: string; label: string; badge?: number }>;
 
   return (
     <nav style={{
       position: 'fixed',
       bottom: 0, left: 0, right: 0,
-      height: 'calc(64px + env(safe-area-inset-bottom))',
-      background: '#fff',
-      borderTop: '1px solid #EEF2F7',
+      background: 'var(--surface)',
+      borderTop: '1px solid var(--border)',
       display: 'flex',
-      alignItems: 'flex-start',
-      paddingTop: 8,
+      alignItems: 'stretch',
       paddingBottom: 'env(safe-area-inset-bottom)',
       zIndex: 100,
-      boxShadow: '0 -2px 16px rgba(25,118,210,0.07)',
     }}>
-      {tabs.map((tab) => {
-        const active = pathname === tab.href || pathname.startsWith(tab.href + '/');
-        const badge = tab.href === '/home' && isManagerOrAdmin && approvalVacations.length > 0
-          ? approvalVacations.length
-          : undefined;
+      {tabs.map(({ href, Icon, label }) => {
+        const skip = href === '/employees' && !isManagerOrAdmin;
+        if (skip) return null;
+
+        const active = pathname === href || pathname.startsWith(href + '/');
 
         return (
           <Link
-            key={tab.href}
-            href={tab.href}
+            key={href}
+            href={href}
             style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: 3,
+              padding: '10px 4px',
               textDecoration: 'none',
-              position: 'relative',
+              color: active ? 'var(--blue)' : 'var(--text-3)',
+              transition: 'color 0.12s',
+              minHeight: 52,
             }}
           >
-            <div style={{ position: 'relative', display: 'inline-flex' }}>
-              <span style={{ fontSize: 22, lineHeight: 1, filter: active ? 'none' : 'grayscale(1) opacity(0.5)' }}>
-                {tab.icon}
-              </span>
-              {badge != null && badge > 0 && (
-                <span style={{
-                  position: 'absolute', top: -4, right: -6,
-                  minWidth: 16, height: 16, borderRadius: 8,
-                  background: '#FF5252', border: '2px solid #fff',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 9, fontWeight: 800, color: '#fff',
-                  padding: '0 3px',
-                }}>
-                  {badge > 99 ? '99+' : badge}
-                </span>
-              )}
-            </div>
+            <Icon size={21} strokeWidth={active ? 2.1 : 1.7} />
             <span style={{
               fontSize: 10,
-              fontWeight: active ? 700 : 500,
-              color: active ? '#1976D2' : '#90A4AE',
+              fontWeight: active ? 600 : 400,
               lineHeight: 1,
+              letterSpacing: '0.01em',
             }}>
-              {tab.label}
+              {label}
             </span>
-            {active && (
-              <div style={{
-                position: 'absolute',
-                top: -9, left: '50%',
-                transform: 'translateX(-50%)',
-                width: 28, height: 3,
-                borderRadius: '0 0 4px 4px',
-                background: '#1976D2',
-              }} />
-            )}
           </Link>
         );
       })}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/server/auth';
+import { parseCursor, parsePositiveInt } from '@/lib/server/pagination';
 import { prisma } from '@/lib/server/prisma';
 import { serializeNotification } from '@/lib/server/serializers';
 
@@ -10,15 +11,15 @@ export async function GET(request: Request) {
   if (response) return response;
 
   const url = new URL(request.url);
-  const cursor = url.searchParams.get('cursor');
-  const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '30'), 100);
+  const cursor = parseCursor(url.searchParams.get('cursor'));
+  const limit = parsePositiveInt(url.searchParams.get('limit'), 30, 100);
   const take = limit + 1;
 
   const notifications = await prisma.notification.findMany({
     where: { userId: user.id },
     orderBy: [{ date: 'desc' }, { id: 'desc' }],
     take,
-    ...(cursor ? { cursor: { id: parseInt(cursor) }, skip: 1 } : {}),
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   });
 
   const hasMore = notifications.length > limit;

@@ -14,42 +14,32 @@ interface AppButtonProps {
   type?: 'button' | 'submit' | 'reset';
 }
 
-const styles: Record<Variant, CSSProperties> = {
+const VARIANT: Record<Variant, CSSProperties> = {
   primary: {
-    background: 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
+    background: 'var(--blue)',
     color: '#fff',
     border: 'none',
-    boxShadow: '0 2px 12px rgba(25,118,210,0.35)',
   },
   secondary: {
-    background: '#F0F4F8',
-    color: '#1976D2',
-    border: '1.5px solid #E0E7EF',
-    boxShadow: 'none',
+    background: 'var(--surface)',
+    color: 'var(--text)',
+    border: '1px solid var(--border)',
   },
   danger: {
-    background: '#FEF2F2',
-    color: '#E53935',
-    border: '1.5px solid #FECACA',
-    boxShadow: 'none',
+    background: 'var(--red-surface)',
+    color: 'var(--red)',
+    border: '1px solid var(--red-border)',
   },
   ghost: {
     background: 'transparent',
-    color: '#1976D2',
+    color: 'var(--blue)',
     border: 'none',
-    boxShadow: 'none',
   },
 };
 
 export function AppButton({
-  children,
-  onClick,
-  variant = 'primary',
-  fullWidth = false,
-  disabled = false,
-  icon,
-  style,
-  type = 'button',
+  children, onClick, variant = 'primary', fullWidth = false,
+  disabled = false, icon, style, type = 'button',
 }: AppButtonProps) {
   return (
     <button
@@ -61,21 +51,22 @@ export function AppButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        padding: '14px 20px',
-        borderRadius: 14,
-        fontSize: 15,
-        fontWeight: 700,
+        padding: '13px 20px',
+        borderRadius: 10,
+        fontSize: 14,
+        fontWeight: 600,
         fontFamily: 'inherit',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         width: fullWidth ? '100%' : undefined,
-        transition: 'opacity 0.15s, transform 0.1s',
+        transition: 'opacity 0.12s',
         WebkitTapHighlightColor: 'transparent',
-        ...styles[variant],
+        letterSpacing: '-0.01em',
+        ...VARIANT[variant],
         ...style,
       }}
     >
-      {icon && <span style={{ fontSize: 18 }}>{icon}</span>}
+      {icon && <span style={{ display: 'flex', alignItems: 'center' }}>{icon}</span>}
       {children}
     </button>
   );

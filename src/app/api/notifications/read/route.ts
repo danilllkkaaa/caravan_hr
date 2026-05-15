@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/prisma';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const { user, response } = await requireCurrentUser();
   if (response) return response;
 
   const body = await request.json().catch(() => null);
   const id = Number(body?.id);
-  if (!Number.isInteger(id)) {
+  if (!Number.isInteger(id) || id < 1) {
     return NextResponse.json({ error: 'Некорректный id уведомления' }, { status: 400 });
   }
 

@@ -1,15 +1,30 @@
 import { NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/server/auth';
+import { formatRuDate } from '@/lib/server/dates';
+import { createNotification } from '@/lib/server/notifications';
 import { prisma } from '@/lib/server/prisma';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 
 export const runtime = 'nodejs';
 
+class VacationStatusError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const { user, response } = await requireCurrentUser();
   if (response) return response;
 
   if (user.role !== 'manager' && user.role !== 'admin') {
-    return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
+    return NextResponse.json({ error: 'Доступ запрещен' }, { status: 403 });
   }
 
   const { id: idStr } = await params;
@@ -35,39 +50,55 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (vacation.status !== 'pending') {
     return NextResponse.json({ error: 'Заявка уже обработана' }, { status: 409 });
   }
-
-  // Manager can only approve vacations from their own subordinates.
   if (user.role === 'manager' && vacation.user.managerId !== user.id) {
     return NextResponse.json({ error: 'Нет доступа к этой заявке' }, { status: 403 });
   }
 
-  const now = new Date();
-  await prisma.$transaction(async (tx) => {
-    await tx.vacation.update({ where: { id }, data: { status: newStatus } });
+  try {
+    await prisma.$transaction(async (tx) => {
+      if (newStatus === 'approved') {
+        const owner = await tx.user.findUnique({
+          where: { id: vacation.userId },
+          select: { vacationTotal: true, vacationUsed: true },
+        });
+        if (!owner) throw new VacationStatusError('Сотрудник не найден', 404);
+        if (owner.vacationTotal - owner.vacationUsed < vacation.days) {
+          throw new VacationStatusError('Недостаточно дней отпуска', 409);
+        }
+      }
 
-    // If approving, add vacation days to employee's used balance.
-    if (newStatus === 'approved') {
-      await tx.user.update({
-        where: { id: vacation.userId },
-        data: { vacationUsed: { increment: vacation.days } },
+      const updated = await tx.vacation.updateMany({
+        where: { id, status: 'pending' },
+        data: { status: newStatus },
       });
-    }
 
-    const isApproved = newStatus === 'approved';
-    await tx.notification.create({
-      data: {
+      if (updated.count !== 1) {
+        throw new VacationStatusError('Заявка уже обработана', 409);
+      }
+
+      if (newStatus === 'approved') {
+        await tx.user.update({
+          where: { id: vacation.userId },
+          data: { vacationUsed: { increment: vacation.days } },
+        });
+      }
+
+      const isApproved = newStatus === 'approved';
+      await createNotification(tx, {
         userId: vacation.userId,
         type: isApproved ? 'approved' : 'rejected',
-        title: isApproved ? 'Отпуск одобрен' : 'Отпуск отклонён',
+        title: isApproved ? 'Отпуск одобрен' : 'Отпуск отклонен',
         description: isApproved
-          ? `Ваш отпуск с ${vacation.startDate.toLocaleDateString('ru-RU')} по ${vacation.endDate.toLocaleDateString('ru-RU')} (${vacation.days} дн.) одобрен`
-          : `Ваш отпуск с ${vacation.startDate.toLocaleDateString('ru-RU')} по ${vacation.endDate.toLocaleDateString('ru-RU')} отклонён`,
-        date: now,
-        time: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-        read: false,
-      },
+          ? `Ваш отпуск с ${formatRuDate(vacation.startDate)} по ${formatRuDate(vacation.endDate)} (${vacation.days} дн.) одобрен`
+          : `Ваш отпуск с ${formatRuDate(vacation.startDate)} по ${formatRuDate(vacation.endDate)} отклонен`,
+      });
     });
-  });
+  } catch (error) {
+    if (error instanceof VacationStatusError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
+  }
 
   return NextResponse.json({ ok: true });
 }

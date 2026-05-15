@@ -6,7 +6,7 @@
     "dev": "next dev -H 0.0.0.0 -p 3001",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3001",
-    "lint": "next lint",
+    "lint": "eslint . --ext .ts,.tsx",
     "type-check": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -16,7 +16,7 @@
   "dependencies": {
     "@prisma/client": "^6.16.3",
     "bcryptjs": "^3.0.3",
-    "next": "^15.5.15",
+    "next": "^16.3.0-canary.19",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^5.0.0"

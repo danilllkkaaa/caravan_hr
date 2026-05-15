@@ -13,13 +13,12 @@ export function AppCard({ children, padding = '16px', style, onClick }: AppCardP
     <div
       onClick={onClick}
       style={{
-        background: '#fff',
-        borderRadius: 16,
+        background: 'var(--surface)',
+        borderRadius: 12,
         padding,
-        boxShadow: '0 1px 8px rgba(25,118,210,0.06)',
-        border: '1px solid #EEF2F7',
+        border: '1px solid var(--border)',
         overflow: 'hidden',
-        ...(onClick ? { cursor: 'pointer', WebkitTapHighlightColor: 'transparent' } : {}),
+        ...(onClick ? { cursor: 'pointer', WebkitTapHighlightColor: 'transparent', active: { background: 'var(--bg)' } } : {}),
         ...style,
       }}
     >

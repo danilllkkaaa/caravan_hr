@@ -2,10 +2,14 @@ import { NextResponse } from 'next/server';
 import { clearSessionCookie, hashToken, SESSION_COOKIE } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/prisma';
 import { cookies } from 'next/headers';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 
 export const runtime = 'nodejs';
 
-export async function POST() {
+export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (token) {
     await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });

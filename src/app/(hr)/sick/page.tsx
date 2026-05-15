@@ -1,117 +1,108 @@
 'use client';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useHRStore } from '@/lib/hrStore';
 import { AppCard } from '@/components/hr/AppCard';
+import { PlusIcon, ClipIcon } from '@/components/hr/Icons';
 import { formatDate } from '@/lib/dateUtils';
 
-const STATUS_CONFIG = {
-  opened: { label: 'Открыт', color: '#FF9800', bg: '#FFF8E1' },
-  closed: { label: 'Закрыт', color: '#4CAF50', bg: '#E8F5E9' },
+const STATUS = {
+  opened: { label: 'Открыт',  dot: 'var(--amber)', text: 'var(--amber)' },
+  closed: { label: 'Закрыт',  dot: 'var(--green)', text: 'var(--green)' },
 };
 
 export default function SickPage() {
   const router = useRouter();
-  const { sickLeaves, hasMoreSickLeaves, loadMoreSickLeaves } = useHRStore();
-  const [loadingMore, setLoadingMore] = useState(false);
-  const openedCount = sickLeaves.filter((l) => l.status === 'opened').length;
-
-  async function handleLoadMore() {
-    setLoadingMore(true);
-    try {
-      await loadMoreSickLeaves();
-    } finally {
-      setLoadingMore(false);
-    }
-  }
+  const { sickLeaves } = useHRStore();
+  const openCount = sickLeaves.filter((l) => l.status === 'opened').length;
+  const totalDays = sickLeaves.filter((l) => l.status === 'closed').reduce((s, l) => s + l.days, 0);
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
-      <div style={{ background: 'linear-gradient(135deg, #C62828 0%, #E53935 100%)', padding: 'calc(env(safe-area-inset-top) + 16px) 20px 24px', borderRadius: '0 0 28px 28px' }}>
-        <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Больничные</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>Листки нетрудоспособности</div>
-        <div style={{ marginTop: 14, display: 'flex', gap: 8 }}>
-          <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: '8px 14px', border: '1px solid rgba(255,255,255,0.25)', textAlign: 'center', flex: 1 }}>
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 800 }}>{sickLeaves.length}</div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 1 }}>Всего</div>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: '8px 14px', border: '1px solid rgba(255,255,255,0.25)', textAlign: 'center', flex: 1 }}>
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 800 }}>{openedCount}</div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 1 }}>Открыто</div>
-          </div>
-          <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: '8px 14px', border: '1px solid rgba(255,255,255,0.25)', textAlign: 'center', flex: 1 }}>
-            <div style={{ color: '#fff', fontSize: 18, fontWeight: 800 }}>{sickLeaves.reduce((s, l) => s + l.days, 0)}</div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 10, marginTop: 1 }}>Дней</div>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }} className="pb-nav">
+      <div style={{ background: 'var(--blue)', paddingTop: 'env(safe-area-inset-top)' }}>
+        <div style={{ padding: '14px 20px 16px' }}>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, marginBottom: 2 }}>Больничные</div>
+          <div style={{ display: 'flex', gap: 20, marginTop: 8 }}>
+            <div>
+              <div style={{ color: '#fff', fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{sickLeaves.length}</div>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 1 }}>всего</div>
+            </div>
+            <div>
+              <div style={{ color: '#fff', fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{totalDays}</div>
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 1 }}>дней закрыто</div>
+            </div>
+            {openCount > 0 && (
+              <div>
+                <div style={{ color: '#FBBF24', fontSize: 22, fontWeight: 700, letterSpacing: '-0.03em' }}>{openCount}</div>
+                <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 1 }}>открыто</div>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <div style={{ padding: '16px 16px 0' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {sickLeaves.map((sl) => {
-            const cfg = STATUS_CONFIG[sl.status];
-            return (
-              <AppCard
-                key={sl.id}
-                padding="14px 16px"
-                onClick={() => sl.status === 'opened' && router.push(`/sick/${sl.id}`)}
-                style={{ cursor: sl.status === 'opened' ? 'pointer' : 'default' }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1A2332' }}>Больничный лист</div>
-                    <div style={{ fontSize: 12, color: '#78909C', marginTop: 2 }}>
-                      {formatDate(sl.startDate)} {sl.endDate ? `- ${formatDate(sl.endDate)}` : '- открыт'}
+      <div style={{ padding: '14px 16px 0' }}>
+        {sickLeaves.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-3)', fontSize: 14 }}>
+            Нет записей
+          </div>
+        ) : (
+          <AppCard padding="0">
+            {sickLeaves.map((sl, i) => {
+              const s = STATUS[sl.status];
+              return (
+                <div key={sl.id} style={{
+                  padding: '14px 16px',
+                  borderBottom: i < sickLeaves.length - 1 ? '1px solid var(--border-light)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+                      {formatDate(sl.startDate)}
+                      {sl.endDate ? ` — ${formatDate(sl.endDate)}` : ' — открыт'}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot }} />
+                      <span style={{ fontSize: 12, fontWeight: 500, color: s.text }}>{s.label}</span>
                     </div>
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: cfg.color, background: cfg.bg, padding: '4px 10px', borderRadius: 20 }}>
-                    {cfg.label}
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {sl.status === 'closed' && (
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{sl.days} дн.</span>
+                    )}
+                    {sl.hasFile && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--green)' }}>
+                        <ClipIcon size={13} color="var(--green)" />
+                        <span style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sl.fileName}
+                        </span>
+                      </span>
+                    )}
+                    {!sl.hasFile && sl.status !== 'opened' && (
+                      <span style={{ fontSize: 12, color: 'var(--text-3)' }}>Без файла</span>
+                    )}
+                    {sl.comment && (
+                      <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{sl.comment}</span>
+                    )}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div style={{ background: '#F0F4F8', borderRadius: 8, padding: '4px 10px', fontSize: 13, fontWeight: 700, color: '#E53935' }}>
-                    {sl.status === 'opened' ? 'Открыт' : `${sl.days} дн.`}
-                  </div>
-                  {sl.hasFile && (
-                    <a
-                      href={`/api/sick-leaves/${sl.id}/file`}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#E8F5E9', borderRadius: 8, padding: '4px 10px', fontSize: 12, color: '#4CAF50', fontWeight: 600, textDecoration: 'none' }}
-                    >
-                      <span>📎</span>
-                      <span style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sl.fileName}</span>
-                    </a>
-                  )}
-                  {sl.comment && <div style={{ fontSize: 12, color: '#78909C', flex: 1 }}>{sl.comment}</div>}
-                </div>
-              </AppCard>
-            );
-          })}
-
-          {hasMoreSickLeaves && (
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 14,
-                border: '1.5px dashed #B0BEC5', background: 'transparent',
-                color: '#546E7A', fontSize: 13, fontWeight: 600,
-                cursor: loadingMore ? 'default' : 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
-            </button>
-          )}
-        </div>
+              );
+            })}
+          </AppCard>
+        )}
       </div>
 
       <button
         onClick={() => router.push('/sick/new')}
-        style={{ position: 'fixed', bottom: 'calc(80px + env(safe-area-inset-bottom))', right: 20, width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #E53935 0%, #C62828 100%)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: '#fff', boxShadow: '0 4px 20px rgba(229,57,53,0.45)', zIndex: 50 }}
+        style={{
+          position: 'fixed',
+          bottom: 'calc(72px + env(safe-area-inset-bottom))',
+          right: 20,
+          width: 52, height: 52, borderRadius: '50%',
+          background: 'var(--blue)', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: '#fff', boxShadow: '0 4px 16px rgba(37,99,235,0.4)', zIndex: 50,
+        }}
       >
-        +
+        <PlusIcon size={22} strokeWidth={2.5} />
       </button>
     </div>
   );

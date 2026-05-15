@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { User } from '@prisma/client';
 import { requireCurrentUser } from '@/lib/server/auth';
+import { todayDateOnly } from '@/lib/server/dates';
 import { prisma } from '@/lib/server/prisma';
+import { EMPTY_TIME } from '@/lib/server/time';
 
 export const runtime = 'nodejs';
 
 type EmployeeStatus = 'working' | 'sick' | 'vacation' | 'home';
+type UserRow = Pick<User, 'id' | 'name' | 'firstName' | 'position' | 'department' | 'email' | 'role'>;
 
-function todayDateOnly() {
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-}
+const MANAGER_LIMIT = 50;
+const SUBORDINATE_LIMIT = 100;
 
-// Batch-resolves status for many users in 3 queries instead of 3 per user.
 async function batchEmployeeStatuses(
   userIds: string[],
   today: Date,
@@ -22,8 +22,7 @@ async function batchEmployeeStatuses(
   const [sickIds, vacationIds, checkedInIds] = await Promise.all([
     prisma.sickLeave
       .findMany({ where: { userId: { in: userIds }, status: 'opened' }, select: { userId: true } })
-      .then((rows) => new Set(rows.map((r) => r.userId))),
-
+      .then((rows) => new Set(rows.map((row) => row.userId))),
     prisma.vacation
       .findMany({
         where: {
@@ -34,32 +33,29 @@ async function batchEmployeeStatuses(
         },
         select: { userId: true },
       })
-      .then((rows) => new Set(rows.map((r) => r.userId))),
-
+      .then((rows) => new Set(rows.map((row) => row.userId))),
     prisma.timeRecord
       .findMany({
         where: {
           userId: { in: userIds },
           date: today,
           status: { in: ['normal', 'overtime', 'short'] },
-          NOT: { checkIn: '—' },
+          NOT: { checkIn: EMPTY_TIME },
         },
         select: { userId: true },
       })
-      .then((rows) => new Set(rows.map((r) => r.userId))),
+      .then((rows) => new Set(rows.map((row) => row.userId))),
   ]);
 
-  const result = new Map<string, EmployeeStatus>();
-  for (const id of userIds) {
-    if (sickIds.has(id)) result.set(id, 'sick');
-    else if (vacationIds.has(id)) result.set(id, 'vacation');
-    else if (checkedInIds.has(id)) result.set(id, 'working');
-    else result.set(id, 'home');
-  }
-  return result;
+  return new Map(
+    userIds.map((id) => {
+      if (sickIds.has(id)) return [id, 'sick'];
+      if (vacationIds.has(id)) return [id, 'vacation'];
+      if (checkedInIds.has(id)) return [id, 'working'];
+      return [id, 'home'];
+    }),
+  );
 }
-
-type UserRow = Pick<User, 'id' | 'name' | 'firstName' | 'position' | 'department' | 'email' | 'role'>;
 
 function serializeEmployee(user: UserRow, status: EmployeeStatus) {
   return {
@@ -73,9 +69,6 @@ function serializeEmployee(user: UserRow, status: EmployeeStatus) {
     status,
   };
 }
-
-const MANAGER_LIMIT = 50; // admin view: max managers per page
-const SUBORDINATE_LIMIT = 100;
 
 export async function GET(request: Request) {
   const { user, response } = await requireCurrentUser();
@@ -104,8 +97,7 @@ export async function GET(request: Request) {
     const hasMoreManagers = managers.length > MANAGER_LIMIT;
     if (hasMoreManagers) managers.pop();
 
-    // Collect all user IDs for a single batch status fetch
-    const allIds = managers.flatMap((m) => [m.id, ...m.subordinates.map((s) => s.id)]);
+    const allIds = managers.flatMap((manager) => [manager.id, ...manager.subordinates.map((employee) => employee.id)]);
     const statuses = await batchEmployeeStatuses(allIds, today);
 
     return NextResponse.json({
@@ -115,8 +107,8 @@ export async function GET(request: Request) {
       nextCursor: hasMoreManagers ? managers[managers.length - 1]?.id ?? null : null,
       managers: managers.map((manager) => ({
         ...serializeEmployee(manager, statuses.get(manager.id) ?? 'home'),
-        employees: manager.subordinates.map((emp) =>
-          serializeEmployee(emp, statuses.get(emp.id) ?? 'home'),
+        employees: manager.subordinates.map((employee) =>
+          serializeEmployee(employee, statuses.get(employee.id) ?? 'home'),
         ),
       })),
     });
@@ -130,12 +122,12 @@ export async function GET(request: Request) {
       select: { id: true, name: true, firstName: true, position: true, department: true, email: true, role: true },
     });
 
-    const statuses = await batchEmployeeStatuses(employees.map((e) => e.id), today);
+    const statuses = await batchEmployeeStatuses(employees.map((employee) => employee.id), today);
 
     return NextResponse.json({
       mode: 'manager',
       department: user.department,
-      employees: employees.map((emp) => serializeEmployee(emp, statuses.get(emp.id) ?? 'home')),
+      employees: employees.map((employee) => serializeEmployee(employee, statuses.get(employee.id) ?? 'home')),
     });
   }
 

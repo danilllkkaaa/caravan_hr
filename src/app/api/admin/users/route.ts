@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { requireCurrentUser } from '@/lib/server/auth';
 import { prisma } from '@/lib/server/prisma';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 import { serializeUser } from '@/lib/server/serializers';
 
 export const runtime = 'nodejs';
@@ -12,12 +14,14 @@ function firstNameFromEmail(email: string) {
   return clean.charAt(0).toUpperCase() + clean.slice(1);
 }
 
-async function nextEmployeeId() {
-  const count = await prisma.user.count();
-  return `EMP-${String(4000 + count + 1).padStart(4, '0')}`;
+function nextEmployeeId() {
+  return `EMP-${crypto.randomInt(100000, 999999)}`;
 }
 
 export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const { user: currentUser, response } = await requireCurrentUser();
   if (response) return response;
 
@@ -54,7 +58,7 @@ export async function POST(request: Request) {
       position: 'Сотрудник',
       department: currentUser.department,
       phone: '',
-      employeeId: await nextEmployeeId(),
+      employeeId: nextEmployeeId(),
       hireDate: new Date(),
       vacationTotal: 28,
       vacationUsed: 0,

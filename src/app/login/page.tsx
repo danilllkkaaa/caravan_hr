@@ -21,8 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password);
-      const next = new URLSearchParams(window.location.search).get('next');
-      router.push(next || '/home');
+      router.push('/home');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось войти');
     } finally {
@@ -33,48 +32,68 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100dvh',
-      background: 'linear-gradient(160deg, #1565C0 0%, #1976D2 40%, #42A5F5 100%)',
+      background: 'var(--bg)',
       display: 'flex',
       flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px 20px',
-      paddingTop: 'calc(env(safe-area-inset-top) + 24px)',
-      paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
     }}>
-      {/* Logo */}
-      <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      {/* Top colour strip */}
+      <div style={{
+        background: 'var(--blue)',
+        padding: '40px 24px 36px',
+        flexShrink: 0,
+      }}>
         <div style={{
-          width: 80, height: 80, borderRadius: 24,
-          background: 'rgba(255,255,255,0.2)',
-          border: '2px solid rgba(255,255,255,0.4)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 36, margin: '0 auto 16px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 20,
         }}>
-          🏢
+          {/* Wordmark logo */}
+          <div style={{
+            width: 36, height: 36, borderRadius: 9,
+            background: 'rgba(255,255,255,0.18)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+            </svg>
+          </div>
+          <span style={{ color: '#fff', fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em' }}>
+            Caravan HR
+          </span>
         </div>
-        <div style={{ color: '#fff', fontSize: 26, fontWeight: 900, letterSpacing: -0.5 }}>Caravan HR</div>
-        <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 4 }}>Личный кабинет сотрудника</div>
+        <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+          Личный кабинет<br />сотрудника
+        </div>
       </div>
 
-      {/* Card */}
+      {/* Form area */}
       <div style={{
-        background: '#fff',
-        borderRadius: 24,
-        padding: 24,
-        width: '100%',
-        maxWidth: 400,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+        flex: 1,
+        background: 'var(--surface)',
+        borderRadius: '20px 20px 0 0',
+        marginTop: -16,
+        padding: '28px 20px 24px',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#1A2332', marginBottom: 6 }}>Вход</div>
-        <div style={{ fontSize: 13, color: '#78909C', marginBottom: 24 }}>Введите корпоративные данные</div>
+        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
+          Вход
+        </div>
+        <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 24 }}>
+          Используйте корпоративный аккаунт
+        </div>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <AppInput
-            label="Корпоративный email"
+            label="Email"
             type="email"
-            placeholder="name@company.ru"
+            placeholder="имя@caravan.local"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
@@ -90,32 +109,29 @@ export default function LoginPage() {
 
           {error && (
             <div style={{
-              background: '#FEF2F2', border: '1px solid #FECACA',
-              borderRadius: 10, padding: '10px 14px',
-              fontSize: 13, color: '#E53935', fontWeight: 500,
+              background: 'var(--red-surface)',
+              border: '1px solid var(--red-border)',
+              borderRadius: 8,
+              padding: '10px 13px',
+              fontSize: 13,
+              color: 'var(--red)',
             }}>
               {error}
             </div>
           )}
 
           <AppButton type="submit" fullWidth disabled={loading} style={{ marginTop: 4 }}>
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  border: '2px solid rgba(255,255,255,0.4)',
-                  borderTopColor: '#fff',
-                  animation: 'spin 0.7s linear infinite',
-                  display: 'inline-block',
-                }} />
-                Вход...
-              </span>
-            ) : 'Войти'}
+            {loading
+              ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 14, height: 14, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                  Вход...
+                </span>
+              : 'Войти'}
           </AppButton>
         </form>
 
-        <div style={{ marginTop: 20, padding: '12px 14px', background: '#F8FAFC', borderRadius: 10, fontSize: 12, color: '#78909C' }}>
-          <span style={{ fontWeight: 600 }}>Тест:</span> alexey.smirnov@caravan.local / Password123!
+        <div style={{ marginTop: 'auto', paddingTop: 24, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
+          Проблемы со входом? Обратитесь в IT-поддержку.
         </div>
       </div>
     </div>

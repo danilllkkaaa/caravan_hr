@@ -2,81 +2,80 @@
 import { useRouter } from 'next/navigation';
 import { useHRStore } from '@/lib/hrStore';
 import { AppCard } from '@/components/hr/AppCard';
-
-const CIRCLE_R = 38;
-const CIRCLE_C = 48;
-const CIRCLE_DASH = 2 * Math.PI * CIRCLE_R;
-
-const TIME_STATUS_LABEL: Record<string, string> = {
-  overtime: 'Сверхурочно',
-  short: 'Неполный день',
-  normal: 'Рабочий день',
-  weekend: 'Выходной',
-  holiday: 'Праздник',
-  absent: 'Отсутствие',
-};
-
-const TIME_STATUS_COLOR: Record<string, { color: string; bg: string }> = {
-  overtime: { color: '#4CAF50', bg: '#E8F5E9' },
-  short:    { color: '#FF9800', bg: '#FFF8E1' },
-  normal:   { color: '#1976D2', bg: '#E3F2FD' },
-  weekend:  { color: '#90A4AE', bg: '#F5F5F5' },
-  holiday:  { color: '#9C27B0', bg: '#F3E5F5' },
-  absent:   { color: '#E53935', bg: '#FFEBEE' },
-};
+import {
+  BellIcon, CalendarIcon, HospitalIcon,
+  ClockIcon, ListIcon, ChevronRIcon,
+} from '@/components/hr/Icons';
 
 export default function HomePage() {
   const router = useRouter();
   const { user, vacationBalance, notifications, timeRecords } = useHRStore();
 
-  const unread = notifications.filter((n) => !n.read);
-  const usedFrac = vacationBalance.total > 0 ? vacationBalance.used / vacationBalance.total : 0;
-  const strokeDash = CIRCLE_DASH * usedFrac;
+  const unread = notifications.filter((n) => !n.read).length;
+  const usedPct = vacationBalance.total > 0
+    ? Math.round((vacationBalance.used / vacationBalance.total) * 100)
+    : 0;
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const todayRecord = timeRecords.find((r) => r.date === todayStr) ?? null;
+  const todayRecord = timeRecords.find((r) => r.date === todayStr) ?? timeRecords[0];
 
-  const isManagerOrAdmin = user.role === 'manager' || user.role === 'admin';
+  const STATUS_LABEL: Record<string, string> = {
+    normal: 'Рабочий день', overtime: 'Сверхурочно',
+    short: 'Неполный день', weekend: 'Выходной',
+    absent: 'Отсутствие', holiday: 'Праздник',
+  };
+  const STATUS_COLOR: Record<string, string> = {
+    normal: 'var(--blue)', overtime: 'var(--green)',
+    short: 'var(--amber)', weekend: 'var(--text-3)',
+    absent: 'var(--red)', holiday: 'var(--text-2)',
+  };
 
-  const quickActions = [
-    { icon: '✈️', label: 'Новый отпуск', href: '/vacations/new', color: '#E3F2FD' },
-    { icon: '🏥', label: 'Больничный', href: '/sick', color: '#FCE4EC' },
-    { icon: '⏱️', label: 'Табель', href: '/time', color: '#E8F5E9' },
-    { icon: '📋', label: 'Мои заявки', href: '/vacations', color: '#FFF8E1' },
-    ...(isManagerOrAdmin
-      ? [{ icon: '✅', label: 'Согласования', href: '/approvals', color: '#EDE7F6' }]
-      : []),
+  const actions = [
+    { icon: <CalendarIcon size={18} />, label: 'Заявление на отпуск', href: '/vacations/new', hint: `${vacationBalance.remaining} дн. осталось` },
+    { icon: <HospitalIcon size={18} />, label: 'Оформить больничный',  href: '/sick/new',      hint: null },
+    { icon: <ClockIcon size={18} />,    label: 'Табель рабочего времени', href: '/time',        hint: null },
+    { icon: <ListIcon size={18} />,     label: 'История заявок',       href: '/vacations',     hint: null },
   ];
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }} className="pb-nav">
       {/* Header */}
       <div style={{
-        background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
-        padding: 'calc(env(safe-area-inset-top) + 16px) 20px 28px',
-        borderRadius: '0 0 28px 28px',
+        background: 'var(--blue)',
+        paddingTop: 'env(safe-area-inset-top)',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '14px 20px 16px',
+        }}>
           <div>
-            <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13 }}>Добро пожаловать,</div>
-            <div style={{ color: '#fff', fontSize: 20, fontWeight: 800, marginTop: 2 }}>{user.firstName}</div>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 2 }}>{user.position}</div>
+            <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500 }}>
+              {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </div>
+            <div style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginTop: 1, letterSpacing: '-0.02em' }}>
+              {user.firstName}
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 1 }}>
+              {user.position}
+            </div>
           </div>
           <button
             onClick={() => router.push('/notifications')}
             style={{
-              background: 'rgba(255,255,255,0.2)', border: 'none',
-              borderRadius: 14, width: 44, height: 44,
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 10, width: 40, height: 40,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', position: 'relative',
+              cursor: 'pointer', position: 'relative', color: '#fff',
             }}
           >
-            <span style={{ fontSize: 22 }}>🔔</span>
-            {unread.length > 0 && (
+            <BellIcon size={18} />
+            {unread > 0 && (
               <span style={{
-                position: 'absolute', top: 6, right: 6,
-                width: 10, height: 10, borderRadius: '50%',
-                background: '#FF5252', border: '2px solid #1976D2',
+                position: 'absolute', top: 7, right: 7,
+                width: 7, height: 7, borderRadius: '50%',
+                background: '#F87171',
+                border: '1.5px solid var(--blue)',
               }} />
             )}
           </button>
@@ -85,102 +84,139 @@ export default function HomePage() {
 
       <div style={{ padding: '16px 16px 0' }}>
         {/* Vacation balance */}
-        <AppCard style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <svg width={CIRCLE_C * 2} height={CIRCLE_C * 2} style={{ flexShrink: 0 }}>
-              <circle cx={CIRCLE_C} cy={CIRCLE_C} r={CIRCLE_R} fill="none" stroke="#EEF2F7" strokeWidth={7} />
-              <circle
-                cx={CIRCLE_C} cy={CIRCLE_C} r={CIRCLE_R}
-                fill="none" stroke="#1976D2" strokeWidth={7}
-                strokeDasharray={`${strokeDash} ${CIRCLE_DASH}`}
-                strokeLinecap="round"
-                transform={`rotate(-90 ${CIRCLE_C} ${CIRCLE_C})`}
-              />
-              <text x={CIRCLE_C} y={CIRCLE_C + 5} textAnchor="middle" fill="#1A2332" fontSize="15" fontWeight="800" fontFamily="Inter, sans-serif">
+        <AppCard style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500 }}>Отпуск</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.03em', marginTop: 1 }}>
                 {vacationBalance.remaining}
-              </text>
-            </svg>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: '#1A2332', marginBottom: 4 }}>Остаток отпуска</div>
-              <div style={{ fontSize: 13, color: '#78909C', marginBottom: 10 }}>
-                Использовано <span style={{ fontWeight: 700, color: '#1976D2' }}>{vacationBalance.used}</span> из {vacationBalance.total} дней
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {[
-                  { label: 'Остаток', value: vacationBalance.remaining, color: '#1976D2' },
-                  { label: 'Использовано', value: vacationBalance.used, color: '#FF9800' },
-                  { label: 'Всего', value: vacationBalance.total, color: '#78909C' },
-                ].map((item) => (
-                  <div key={item.label} style={{ flex: 1, background: '#F8FAFC', borderRadius: 10, padding: '6px 8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: item.color }}>{item.value}</div>
-                    <div style={{ fontSize: 10, color: '#90A4AE' }}>{item.label}</div>
-                  </div>
-                ))}
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-2)', marginLeft: 4 }}>
+                  из {vacationBalance.total} дн.
+                </span>
               </div>
             </div>
+            <div style={{
+              background: 'var(--blue-surface)',
+              color: 'var(--blue)',
+              fontSize: 12, fontWeight: 600,
+              padding: '4px 10px', borderRadius: 6,
+            }}>
+              {vacationBalance.used} использовано
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div style={{
+            height: 6, borderRadius: 3,
+            background: 'var(--border-light)',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', borderRadius: 3,
+              width: `${usedPct}%`,
+              background: usedPct > 80 ? 'var(--amber)' : 'var(--blue)',
+              transition: 'width 0.4s ease',
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>0</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{usedPct}% использовано</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)' }}>{vacationBalance.total}</span>
           </div>
         </AppCard>
 
-        {/* Today's time — read-only, populated from Hikvision */}
+        {/* Today attendance */}
         {todayRecord && todayRecord.checkIn !== '—' && (
-          <AppCard style={{ marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#1A2332' }}>Сегодня</div>
-              {todayRecord.status in TIME_STATUS_COLOR && (
-                <div style={{
-                  fontSize: 11, fontWeight: 600,
-                  color: TIME_STATUS_COLOR[todayRecord.status].color,
-                  background: TIME_STATUS_COLOR[todayRecord.status].bg,
-                  padding: '3px 10px', borderRadius: 20,
-                }}>
-                  {TIME_STATUS_LABEL[todayRecord.status] ?? todayRecord.status}
+          <AppCard style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 13, color: 'var(--text-3)', fontWeight: 500, marginBottom: 4 }}>
+                  Сегодня
                 </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {[
-                { icon: '🟢', label: 'Приход', value: todayRecord.checkIn },
-                { icon: '🔴', label: 'Уход', value: todayRecord.checkOut },
-                { icon: '⏱️', label: 'Рабочее время', value: todayRecord.total },
-              ].map((item) => (
-                <div key={item.label} style={{ flex: 1, background: '#F8FAFC', borderRadius: 10, padding: '8px 6px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 16 }}>{item.icon}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1A2332', marginTop: 2 }}>{item.value}</div>
-                  <div style={{ fontSize: 10, color: '#90A4AE' }}>{item.label}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                  {todayRecord.checkIn} → {todayRecord.checkOut}
                 </div>
-              ))}
+                <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2 }}>
+                  {todayRecord.total} рабочего времени
+                </div>
+              </div>
+              <div style={{
+                fontSize: 12, fontWeight: 500,
+                color: STATUS_COLOR[todayRecord.status] ?? 'var(--text-2)',
+                background: 'var(--border-light)',
+                padding: '5px 10px', borderRadius: 6,
+              }}>
+                {STATUS_LABEL[todayRecord.status] ?? todayRecord.status}
+              </div>
             </div>
           </AppCard>
         )}
 
-        {/* Quick actions */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#90A4AE', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10, paddingLeft: 2 }}>
-            Быстрые действия
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            {quickActions.map((action) => (
-              <AppCard
-                key={action.href}
-                onClick={() => router.push(action.href)}
-                padding="14px"
-                style={{ display: 'flex', alignItems: 'center', gap: 10 }}
-              >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 12,
-                  background: action.color,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, flexShrink: 0,
-                }}>
-                  {action.icon}
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1A2332', lineHeight: 1.3 }}>
+        {/* Actions */}
+        <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+          Действия
+        </div>
+        <AppCard padding="0" style={{ marginBottom: 12 }}>
+          {actions.map((action, i) => (
+            <button
+              key={action.href}
+              onClick={() => router.push(action.href)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '13px 14px',
+                width: '100%', background: 'none', border: 'none',
+                borderBottom: i < actions.length - 1 ? '1px solid var(--border-light)' : 'none',
+                cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
+              }}
+            >
+              <div style={{
+                width: 34, height: 34, borderRadius: 8,
+                background: 'var(--border-light)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, color: 'var(--text-2)',
+              }}>
+                {action.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
                   {action.label}
                 </div>
-              </AppCard>
-            ))}
-          </div>
-        </div>
+                {action.hint && (
+                  <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+                    {action.hint}
+                  </div>
+                )}
+              </div>
+              <ChevronRIcon size={16} color="var(--text-3)" />
+            </button>
+          ))}
+        </AppCard>
+
+        {/* Unread notifications */}
+        {unread > 0 && (
+          <AppCard
+            onClick={() => router.push('/notifications')}
+            padding="13px 14px"
+            style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12 }}
+          >
+            <div style={{
+              width: 34, height: 34, borderRadius: 8,
+              background: 'var(--blue-surface)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <BellIcon size={17} color="var(--blue)" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>
+                {unread} непрочитанных уведомления
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>
+                Нажмите, чтобы просмотреть
+              </div>
+            </div>
+            <ChevronRIcon size={16} color="var(--text-3)" />
+          </AppCard>
+        )}
       </div>
     </div>
   );

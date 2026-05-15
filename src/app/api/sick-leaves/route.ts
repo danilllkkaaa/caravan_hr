@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireCurrentUser } from '@/lib/server/auth';
+import { formatRuDate, parseDateOnly } from '@/lib/server/dates';
+import { notifyManager } from '@/lib/server/notifications';
+import { parseCursor, parsePositiveInt } from '@/lib/server/pagination';
 import { prisma } from '@/lib/server/prisma';
-import { parseDateOnly } from '@/lib/server/dates';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 import { serializeSickLeave } from '@/lib/server/serializers';
 
 export const runtime = 'nodejs';
@@ -11,15 +14,15 @@ export async function GET(request: Request) {
   if (response) return response;
 
   const url = new URL(request.url);
-  const cursor = url.searchParams.get('cursor');
-  const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '10'), 50);
+  const cursor = parseCursor(url.searchParams.get('cursor'));
+  const limit = parsePositiveInt(url.searchParams.get('limit'), 10, 50);
   const take = limit + 1;
 
   const sickLeaves = await prisma.sickLeave.findMany({
     where: { userId: user.id },
     orderBy: { id: 'desc' },
     take,
-    ...(cursor ? { cursor: { id: parseInt(cursor) }, skip: 1 } : {}),
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   });
 
   const hasMore = sickLeaves.length > limit;
@@ -33,6 +36,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const { user, response } = await requireCurrentUser();
   if (response) return response;
 
@@ -43,9 +49,16 @@ export async function POST(request: Request) {
   if (!startDate) {
     return NextResponse.json({ error: 'Выберите дату начала больничного' }, { status: 400 });
   }
+  if (comment.length > 500) {
+    return NextResponse.json({ error: 'Слишком длинный комментарий' }, { status: 400 });
+  }
 
-  const now = new Date();
-  const [sickLeave] = await prisma.$transaction(async (tx) => {
+  const openedSickLeave = await prisma.sickLeave.count({ where: { userId: user.id, status: 'opened' } });
+  if (openedSickLeave > 0) {
+    return NextResponse.json({ error: 'У вас уже есть открытый больничный' }, { status: 409 });
+  }
+
+  const sickLeave = await prisma.$transaction(async (tx) => {
     const record = await tx.sickLeave.create({
       data: {
         userId: user.id,
@@ -58,21 +71,13 @@ export async function POST(request: Request) {
       },
     });
 
-    if (user.managerId) {
-      await tx.notification.create({
-        data: {
-          userId: user.managerId,
-          type: 'reminder',
-          title: 'Открыт больничный',
-          description: `${user.name} открыл больничный с ${startDate.toLocaleDateString('ru-RU')}`,
-          date: now,
-          time: now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-          read: false,
-        },
-      });
-    }
+    await notifyManager(tx, user, {
+      type: 'reminder',
+      title: 'Открыт больничный',
+      description: `${user.name} открыл больничный с ${formatRuDate(startDate)}`,
+    });
 
-    return [record];
+    return record;
   });
 
   return NextResponse.json({ sickLeave: serializeSickLeave(sickLeave) }, { status: 201 });

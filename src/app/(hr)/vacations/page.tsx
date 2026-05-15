@@ -3,85 +3,68 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useHRStore } from '@/lib/hrStore';
 import { AppCard } from '@/components/hr/AppCard';
+import { PlusIcon } from '@/components/hr/Icons';
 import { formatDate } from '@/lib/dateUtils';
 import type { VacationStatus } from '@/lib/mockData';
 
-const STATUS_CONFIG = {
-  approved: { label: 'Одобрен', color: '#4CAF50', bg: '#E8F5E9' },
-  pending: { label: 'На рассмотрении', color: '#FF9800', bg: '#FFF8E1' },
-  rejected: { label: 'Отклонён', color: '#E53935', bg: '#FFEBEE' },
-  draft: { label: 'Черновик', color: '#90A4AE', bg: '#F5F5F5' },
+const STATUS: Record<VacationStatus, { label: string; dot: string; text: string }> = {
+  approved: { label: 'Одобрен',          dot: 'var(--green)', text: 'var(--green)' },
+  pending:  { label: 'На рассмотрении',  dot: 'var(--amber)', text: 'var(--amber)' },
+  rejected: { label: 'Отклонён',         dot: 'var(--red)',   text: 'var(--red)'   },
+  draft:    { label: 'Черновик',         dot: 'var(--text-3)', text: 'var(--text-3)' },
 };
 
 const FILTERS: { key: 'all' | VacationStatus; label: string }[] = [
-  { key: 'all', label: 'Все' },
-  { key: 'approved', label: 'Одобрены' },
-  { key: 'pending', label: 'Ожидают' },
+  { key: 'all',      label: 'Все'       },
+  { key: 'approved', label: 'Одобрены'  },
+  { key: 'pending',  label: 'В работе'  },
   { key: 'rejected', label: 'Отклонены' },
 ];
 
 export default function VacationsPage() {
   const router = useRouter();
-  const { vacations, vacationBalance, hasMoreVacations, loadMoreVacations } = useHRStore();
+  const { vacations, vacationBalance } = useHRStore();
   const [filter, setFilter] = useState<'all' | VacationStatus>('all');
-  const [loadingMore, setLoadingMore] = useState(false);
 
   const filtered = filter === 'all' ? vacations : vacations.filter((v) => v.status === filter);
 
-  async function handleLoadMore() {
-    setLoadingMore(true);
-    try {
-      await loadMoreVacations();
-    } finally {
-      setLoadingMore(false);
-    }
-  }
-
   return (
-    <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }} className="pb-nav">
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
-        padding: 'calc(env(safe-area-inset-top) + 16px) 20px 24px',
-        borderRadius: '0 0 28px 28px',
-      }}>
-        <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Отпуска</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>История заявлений</div>
-
-        {/* Balance chips */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-          {[
-            { label: 'Остаток', value: vacationBalance.remaining, color: '#fff', bg: 'rgba(255,255,255,0.2)' },
-            { label: 'Использовано', value: vacationBalance.used, color: '#fff', bg: 'rgba(255,255,255,0.15)' },
-            { label: 'Всего', value: vacationBalance.total, color: 'rgba(255,255,255,0.8)', bg: 'rgba(255,255,255,0.1)' },
-          ].map((chip) => (
-            <div key={chip.label} style={{
-              flex: 1, background: chip.bg, borderRadius: 12,
-              padding: '8px 6px', textAlign: 'center',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}>
-              <div style={{ color: chip.color, fontSize: 18, fontWeight: 800 }}>{chip.value}</div>
-              <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 10, marginTop: 1 }}>{chip.label}</div>
-            </div>
-          ))}
+      <div style={{ background: 'var(--blue)', paddingTop: 'env(safe-area-inset-top)' }}>
+        <div style={{ padding: '14px 20px 16px' }}>
+          <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12, fontWeight: 500, marginBottom: 2 }}>
+            Доступно дней
+          </div>
+          <div style={{ color: '#fff', fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em' }}>
+            {vacationBalance.remaining}
+            <span style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,0.6)', marginLeft: 6 }}>
+              из {vacationBalance.total}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+            <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 12 }}>
+              Использовано: <strong style={{ color: '#fff' }}>{vacationBalance.used} дн.</strong>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: '14px 16px 0' }}>
         {/* Filters */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }} className="no-scrollbar">
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, overflowX: 'auto' }} className="no-scrollbar">
           {FILTERS.map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               style={{
-                padding: '7px 16px', borderRadius: 20,
-                border: 'none', cursor: 'pointer',
-                fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap',
-                background: filter === f.key ? '#1976D2' : '#fff',
-                color: filter === f.key ? '#fff' : '#546E7A',
-                boxShadow: filter === f.key ? '0 2px 8px rgba(25,118,210,0.3)' : '0 1px 4px rgba(0,0,0,0.06)',
-                fontFamily: 'inherit',
+                padding: '6px 14px', borderRadius: 6,
+                border: filter === f.key ? 'none' : '1px solid var(--border)',
+                cursor: 'pointer', fontSize: 13, fontWeight: 500,
+                whiteSpace: 'nowrap', fontFamily: 'inherit',
+                background: filter === f.key ? 'var(--blue)' : 'var(--surface)',
+                color: filter === f.key ? '#fff' : 'var(--text-2)',
+                transition: 'all 0.1s',
               }}
             >
               {f.label}
@@ -90,63 +73,42 @@ export default function VacationsPage() {
         </div>
 
         {/* List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '48px 0', color: '#90A4AE', fontSize: 14 }}>
-              Заявления не найдены
-            </div>
-          )}
-          {filtered.map((v) => {
-            const cfg = STATUS_CONFIG[v.status];
-            return (
-              <AppCard key={v.id} padding="14px 16px">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#1A2332' }}>{v.type}</div>
-                    <div style={{ fontSize: 12, color: '#78909C', marginTop: 2 }}>
+        {filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-3)', fontSize: 14 }}>
+            Заявлений нет
+          </div>
+        ) : (
+          <AppCard padding="0">
+            {filtered.map((v, i) => {
+              const s = STATUS[v.status];
+              return (
+                <div key={v.id} style={{
+                  padding: '14px 16px',
+                  borderBottom: i < filtered.length - 1 ? '1px solid var(--border-light)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
                       {formatDate(v.startDate)} — {formatDate(v.endDate)}
                     </div>
-                  </div>
-                  <div style={{
-                    fontSize: 11, fontWeight: 700,
-                    color: cfg.color, background: cfg.bg,
-                    padding: '4px 10px', borderRadius: 20,
-                  }}>
-                    {cfg.label}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                  <div style={{
-                    background: '#F0F4F8', borderRadius: 8,
-                    padding: '4px 10px', fontSize: 13, fontWeight: 700, color: '#1976D2',
-                  }}>
-                    {v.days} дн.
-                  </div>
-                  {v.comment && (
-                    <div style={{ fontSize: 12, color: '#78909C', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {v.comment}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: s.dot }} />
+                      <span style={{ fontSize: 12, fontWeight: 500, color: s.text }}>{s.label}</span>
                     </div>
-                  )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-3)' }}>{v.type}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)' }}>{v.days} дн.</span>
+                    {v.comment && (
+                      <span style={{ fontSize: 12, color: 'var(--text-3)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.comment}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </AppCard>
-            );
-          })}
-
-          {hasMoreVacations && filter === 'all' && (
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              style={{
-                width: '100%', padding: '14px', borderRadius: 14,
-                border: '1.5px dashed #B0BEC5', background: 'transparent',
-                color: '#546E7A', fontSize: 13, fontWeight: 600,
-                cursor: loadingMore ? 'default' : 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
-            </button>
-          )}
-        </div>
+              );
+            })}
+          </AppCard>
+        )}
       </div>
 
       {/* FAB */}
@@ -154,19 +116,19 @@ export default function VacationsPage() {
         onClick={() => router.push('/vacations/new')}
         style={{
           position: 'fixed',
-          bottom: 'calc(80px + env(safe-area-inset-bottom))',
+          bottom: 'calc(72px + env(safe-area-inset-bottom))',
           right: 20,
-          width: 56, height: 56,
+          width: 52, height: 52,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
+          background: 'var(--blue)',
           border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, color: '#fff',
-          boxShadow: '0 4px 20px rgba(25,118,210,0.45)',
+          color: '#fff',
+          boxShadow: '0 4px 16px rgba(37,99,235,0.4)',
           zIndex: 50,
         }}
       >
-        +
+        <PlusIcon size={22} strokeWidth={2.5} />
       </button>
     </div>
   );

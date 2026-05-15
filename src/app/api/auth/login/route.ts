@@ -9,10 +9,14 @@ import {
 } from '@/lib/server/auth';
 import { serializeUser } from '@/lib/server/serializers';
 import { checkRateLimit, clearRateLimitOnSuccess, getClientIp } from '@/lib/server/rateLimit';
+import { requireSameOrigin } from '@/lib/server/requestSecurity';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+
   const ip = getClientIp(request);
   const limit = checkRateLimit(ip);
   if (!limit.allowed) {

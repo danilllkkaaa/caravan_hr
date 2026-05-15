@@ -23,12 +23,12 @@ export async function GET() {
     }),
     prisma.vacation.findMany({
       where: { userId: user.id },
-      orderBy: { startDate: 'desc' },
+      orderBy: { id: 'desc' },
       take: PAGE_SIZE.vacations,
     }),
     prisma.sickLeave.findMany({
       where: { userId: user.id },
-      orderBy: { startDate: 'desc' },
+      orderBy: { id: 'desc' },
       take: PAGE_SIZE.sickLeaves,
     }),
     prisma.timeRecord.findMany({

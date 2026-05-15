@@ -25,6 +25,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-caravan}:${POSTGRES_PASSWORD:-caravan_password}@postgres:5432/${POSTGRES_DB:-caravan_hr}?schema=public
       SESSION_DAYS: ${SESSION_DAYS:-30}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Qyzylorda}
+      HIKVISION_WEBHOOK_TOKEN: ${HIKVISION_WEBHOOK_TOKEN:-change-me}
       UPLOAD_DIR: /app/storage/uploads
       NODE_ENV: production
     ports:

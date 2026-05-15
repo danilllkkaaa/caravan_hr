@@ -1,19 +1,18 @@
 'use client';
-import { useState } from 'react';
 import { useHRStore } from '@/lib/hrStore';
 import { AppCard } from '@/components/hr/AppCard';
 import { AppButton } from '@/components/hr/AppButton';
+import { CheckIcon, XIcon, InfoIcon, BellIcon } from '@/components/hr/Icons';
 
-const TYPE_CONFIG = {
-  approved: { icon: '✅', color: '#4CAF50', bg: '#E8F5E9' },
-  rejected: { icon: '❌', color: '#E53935', bg: '#FFEBEE' },
-  info: { icon: 'ℹ️', color: '#1976D2', bg: '#E3F2FD' },
-  reminder: { icon: '⏰', color: '#FF9800', bg: '#FFF8E1' },
+const TYPE_CFG = {
+  approved: { Icon: CheckIcon, color: 'var(--green)', bg: 'var(--green-surface)' },
+  rejected: { Icon: XIcon,     color: 'var(--red)',   bg: 'var(--red-surface)'   },
+  info:     { Icon: InfoIcon,  color: 'var(--blue)',  bg: 'var(--blue-surface)'  },
+  reminder: { Icon: BellIcon,  color: 'var(--amber)', bg: 'var(--amber-surface)' },
 };
 
 export default function NotificationsPage() {
-  const { notifications, markNotificationRead, markAllNotificationsRead, hasMoreNotifications, loadMoreNotifications } = useHRStore();
-  const [loadingMore, setLoadingMore] = useState(false);
+  const { notifications, markNotificationRead, markAllNotificationsRead } = useHRStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const grouped: Record<string, typeof notifications> = {};
@@ -23,7 +22,7 @@ export default function NotificationsPage() {
   }
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
-  function formatGroupDate(iso: string): string {
+  function formatGroupDate(iso: string) {
     const d = new Date(iso);
     const today = new Date();
     const yesterday = new Date(today);
@@ -33,26 +32,13 @@ export default function NotificationsPage() {
     return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
   }
 
-  async function handleLoadMore() {
-    setLoadingMore(true);
-    try {
-      await loadMoreNotifications();
-    } finally {
-      setLoadingMore(false);
-    }
-  }
-
   return (
-    <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
-      <div style={{
-        background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
-        padding: 'calc(env(safe-area-inset-top) + 16px) 20px 24px',
-        borderRadius: '0 0 28px 28px',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }} className="pb-nav">
+      <div style={{ background: 'var(--blue)', paddingTop: 'env(safe-area-inset-top)' }}>
+        <div style={{ padding: '14px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Уведомления</div>
-            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>
+            <div style={{ color: '#fff', fontSize: 16, fontWeight: 600 }}>Уведомления</div>
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 1 }}>
               {unreadCount > 0 ? `${unreadCount} непрочитанных` : 'Все прочитаны'}
             </div>
           </div>
@@ -60,7 +46,7 @@ export default function NotificationsPage() {
             <AppButton
               onClick={markAllNotificationsRead}
               variant="ghost"
-              style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13, padding: '8px 12px' }}
+              style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, padding: '6px 10px' }}
             >
               Прочитать все
             </AppButton>
@@ -68,72 +54,48 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: '14px 16px 0' }}>
         {sortedDates.map((date) => (
           <div key={date} style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#90A4AE', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8, paddingLeft: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
               {formatGroupDate(date)}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {grouped[date].map((notif) => {
-                const cfg = TYPE_CONFIG[notif.type];
+            <AppCard padding="0">
+              {grouped[date].map((notif, i) => {
+                const { Icon, color, bg } = TYPE_CFG[notif.type];
                 return (
-                  <AppCard
+                  <div
                     key={notif.id}
                     onClick={() => markNotificationRead(notif.id)}
-                    padding="14px"
                     style={{
                       display: 'flex', alignItems: 'flex-start', gap: 12,
-                      opacity: notif.read ? 0.75 : 1,
-                      borderLeft: !notif.read ? `3px solid ${cfg.color}` : '3px solid transparent',
+                      padding: '13px 14px',
+                      borderBottom: i < grouped[date].length - 1 ? '1px solid var(--border-light)' : 'none',
+                      cursor: 'pointer',
+                      opacity: notif.read ? 0.6 : 1,
+                      borderLeft: !notif.read ? `3px solid ${color}` : '3px solid transparent',
                     }}
                   >
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 12,
-                      background: cfg.bg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 20, flexShrink: 0,
-                    }}>
-                      {cfg.icon}
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon size={16} color={color} strokeWidth={2} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                        <div style={{ fontSize: 14, fontWeight: notif.read ? 600 : 800, color: '#1A2332', flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 3 }}>
+                        <div style={{ fontSize: 14, fontWeight: notif.read ? 500 : 600, color: 'var(--text)' }}>
                           {notif.title}
                         </div>
-                        <div style={{ fontSize: 11, color: '#90A4AE', flexShrink: 0, marginTop: 2 }}>{notif.time}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-3)', flexShrink: 0 }}>{notif.time}</div>
                       </div>
-                      <div style={{ fontSize: 13, color: '#78909C', marginTop: 4, lineHeight: 1.5 }}>
+                      <div style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.5 }}>
                         {notif.description}
                       </div>
                     </div>
-                    {!notif.read && (
-                      <div style={{
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: cfg.color, flexShrink: 0, marginTop: 4,
-                      }} />
-                    )}
-                  </AppCard>
+                  </div>
                 );
               })}
-            </div>
+            </AppCard>
           </div>
         ))}
-
-        {hasMoreNotifications && (
-          <button
-            onClick={handleLoadMore}
-            disabled={loadingMore}
-            style={{
-              width: '100%', padding: '14px', borderRadius: 14, marginBottom: 16,
-              border: '1.5px dashed #B0BEC5', background: 'transparent',
-              color: '#546E7A', fontSize: 13, fontWeight: 600,
-              cursor: loadingMore ? 'default' : 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
-          </button>
-        )}
       </div>
     </div>
   );

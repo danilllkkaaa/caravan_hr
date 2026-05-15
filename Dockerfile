@@ -24,4 +24,4 @@ COPY --from=builder /app/prisma ./prisma
 RUN mkdir -p /app/storage/uploads && chown -R nextjs:nodejs /app/storage
 USER nextjs
 EXPOSE 3001
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run seed && npm run start"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]

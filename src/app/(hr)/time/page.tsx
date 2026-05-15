@@ -14,25 +14,25 @@ const MONTH_NAMES = [
 type DisplayStatus = TimeRecord['status'] | 'sick' | 'vacation';
 
 const STATUS_CONFIG: Record<DisplayStatus, { color: string; bg: string; label: string }> = {
-  normal:   { color: '#1976D2', bg: '#E3F2FD', label: 'Норма' },
-  overtime: { color: '#4CAF50', bg: '#E8F5E9', label: 'Сверхурочно' },
-  short:    { color: '#FF9800', bg: '#FFF8E1', label: 'Неполный' },
-  weekend:  { color: '#90A4AE', bg: '#F5F5F5', label: 'Выходной' },
-  holiday:  { color: '#9C27B0', bg: '#F3E5F5', label: 'Праздник' },
-  absent:   { color: '#E53935', bg: '#FFEBEE', label: 'Отсутствие' },
-  sick:     { color: '#D84315', bg: '#FBE9E7', label: 'Больничный' },
-  vacation: { color: '#0277BD', bg: '#E1F5FE', label: 'Отпуск' },
+  normal:   { color: 'var(--blue)',  bg: 'var(--blue-surface)',  label: 'Норма'       },
+  overtime: { color: 'var(--green)', bg: 'var(--green-surface)', label: 'Сверхурочно' },
+  short:    { color: 'var(--amber)', bg: 'var(--amber-surface)', label: 'Неполный'    },
+  weekend:  { color: 'var(--text-3)',bg: 'var(--border-light)',  label: 'Выходной'    },
+  holiday:  { color: 'var(--text-2)',bg: 'var(--border-light)',  label: 'Праздник'    },
+  absent:   { color: 'var(--red)',   bg: 'var(--red-surface)',   label: 'Отсутствие'  },
+  sick:     { color: 'var(--red)',   bg: 'var(--red-surface)',   label: 'Больничный'  },
+  vacation: { color: 'var(--blue)',  bg: 'var(--blue-surface)',  label: 'Отпуск'      },
 };
 
 const STATUS_DOT: Record<DisplayStatus, string> = {
-  normal:   '#1976D2',
-  overtime: '#4CAF50',
-  short:    '#FF9800',
-  weekend:  '#CFD8DC',
-  holiday:  '#9C27B0',
-  absent:   '#E53935',
-  sick:     '#D84315',
-  vacation: '#0277BD',
+  normal:   'var(--blue)',
+  overtime: 'var(--green)',
+  short:    'var(--amber)',
+  weekend:  'var(--border)',
+  holiday:  'var(--text-3)',
+  absent:   'var(--red)',
+  sick:     'var(--red)',
+  vacation: 'var(--blue)',
 };
 
 function isoToYM(iso: string): { year: number; month: number } {
@@ -126,39 +126,37 @@ export default function TimePage() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F4F7FB', paddingBottom: 'calc(64px + env(safe-area-inset-bottom))' }}>
-      <div style={{
-        background: 'linear-gradient(135deg, #1B5E20 0%, #388E3C 100%)',
-        padding: 'calc(env(safe-area-inset-top) + 16px) 20px 24px',
-        borderRadius: '0 0 28px 28px',
-      }}>
-        <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Рабочее время</div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 2 }}>Табель учёта</div>
-
-        <div style={{
-          marginTop: 14, display: 'flex', gap: 4,
-          background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 4,
-        }}>
-          {(['week', 'month'] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              style={{
-                flex: 1, padding: '7px 0', borderRadius: 9,
-                border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 13, fontWeight: 700,
-                background: view === v ? '#fff' : 'transparent',
-                color: view === v ? '#1B5E20' : 'rgba(255,255,255,0.75)',
-                transition: 'all 0.18s',
-              }}
-            >
-              {v === 'week' ? 'Неделя' : 'Месяц'}
-            </button>
-          ))}
+    <div style={{ minHeight: '100dvh', background: 'var(--bg)' }} className="pb-nav">
+      <div style={{ background: 'var(--blue)', paddingTop: 'env(safe-area-inset-top)' }}>
+        <div style={{ padding: '14px 20px 16px' }}>
+          <div style={{ color: '#fff', fontSize: 16, fontWeight: 600, marginBottom: 12 }}>
+            Рабочее время
+          </div>
+          <div style={{
+            display: 'flex', gap: 4,
+            background: 'rgba(0,0,0,0.18)', borderRadius: 8, padding: 3,
+          }}>
+            {(['month', 'week'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                style={{
+                  flex: 1, padding: '6px 0', borderRadius: 6,
+                  border: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 13, fontWeight: 500,
+                  background: view === v ? '#fff' : 'transparent',
+                  color: view === v ? 'var(--blue)' : 'rgba(255,255,255,0.7)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {v === 'week' ? 'Неделя' : 'Месяц'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: '14px 16px 0' }}>
         {/* ── WEEK VIEW ── */}
         {view === 'week' && (
           <AppCard style={{ marginBottom: 16 }}>
