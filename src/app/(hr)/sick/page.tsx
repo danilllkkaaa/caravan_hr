@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation';
 import { useHRStore } from '@/lib/hrStore';
 import { AppCard } from '@/components/hr/AppCard';
-import { PlusIcon, ClipIcon } from '@/components/hr/Icons';
+import { PlusIcon, ClipIcon, ChevronRIcon } from '@/components/hr/Icons';
 import { formatDate } from '@/lib/dateUtils';
 
 const STATUS = {
@@ -49,24 +49,37 @@ export default function SickPage() {
           <AppCard padding="0">
             {sickLeaves.map((sl, i) => {
               const s = STATUS[sl.status];
+              const isOpen = sl.status === 'opened';
               return (
-                <div key={sl.id} style={{
-                  padding: '14px 16px',
-                  borderBottom: i < sickLeaves.length - 1 ? '1px solid var(--border-light)' : 'none',
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <div
+                  key={sl.id}
+                  onClick={() => router.push(`/sick/${sl.id}`)}
+                  style={{
+                    padding: '14px 16px',
+                    borderBottom: i < sickLeaves.length - 1 ? '1px solid var(--border-light)' : 'none',
+                    cursor: 'pointer',
+                    borderLeft: isOpen ? '3px solid var(--amber)' : '3px solid transparent',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
                       {formatDate(sl.startDate)}
-                      {sl.endDate ? ` — ${formatDate(sl.endDate)}` : ' — открыт'}
+                      {sl.endDate ? ` — ${formatDate(sl.endDate)}` : ' — н/в'}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: s.dot }} />
-                      <span style={{ fontSize: 13, fontWeight: 500, color: s.text }}>{s.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 7, height: 7, borderRadius: '50%', background: s.dot }} />
+                        <span style={{ fontSize: 13, fontWeight: 500, color: s.text }}>{s.label}</span>
+                      </div>
+                      <ChevronRIcon size={15} color="var(--text-3)" />
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                     {sl.status === 'closed' && (
                       <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>{sl.days} дн.</span>
+                    )}
+                    {isOpen && (
+                      <span style={{ fontSize: 13, color: 'var(--amber)', fontWeight: 500 }}>Нажмите, чтобы закрыть</span>
                     )}
                     {sl.hasFile && (
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--green)' }}>
@@ -79,7 +92,7 @@ export default function SickPage() {
                     {!sl.hasFile && sl.status !== 'opened' && (
                       <span style={{ fontSize: 13, color: 'var(--text-3)' }}>Без файла</span>
                     )}
-                    {sl.comment && (
+                    {sl.comment && !isOpen && (
                       <span style={{ fontSize: 13, color: 'var(--text-3)' }}>{sl.comment}</span>
                     )}
                   </div>
